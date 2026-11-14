@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["cdg1"],
+  "functions": {
+    "app.py": {
+      "maxDuration": 120,
+      "excludeFiles": "{tests/**,presentation/**,data/raw/**,data/validation/*.parquet,**/__pycache__/**,.venv/**,requirements-pipeline.txt}"
+    }
+  }
+}

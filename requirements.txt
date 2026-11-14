@@ -1,0 +1,17 @@
+# Web platform (API + front-end). This is what Vercel installs.
+# The data pipeline (downloads, harmonisation model, AI training, tests) needs
+# the extra packages of requirements-pipeline.txt.
+numpy==2.4.6
+polars==2.1.0
+pyarrow==26.0.1
+duckdb==2.0.0
+h3==4.5.0
+shapely==2.2.0
+scipy==1.17.1
+fastapi==0.162.5
+uvicorn==0.54.0
+matplotlib==3.11.2
+reportlab==5.1.0
+requests==2.34.2
+# Postgres for users / zones / settings when DATABASE_URL is set (serverless hosting)
+psycopg[binary]>=3.2

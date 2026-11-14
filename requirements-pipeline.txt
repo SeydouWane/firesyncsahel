@@ -1,0 +1,13 @@
+# Everything: web platform + data pipeline (NASA downloads, harmonisation model,
+# AI forecast training, validation) + tests.
+#   pip install -r requirements-pipeline.txt
+-r requirements.txt
+scikit-learn==1.9.1
+pandas==3.1.1
+rasterio==1.4.4
+pystac-client==0.9.1
+pyhdf==0.11.7
+httpx==0.28.1
+pytest==9.2.0
+# optional: UI checks and the pitch-deck renderer (presentation/)
+# playwright==1.65.1

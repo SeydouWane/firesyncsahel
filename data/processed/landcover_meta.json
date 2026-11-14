@@ -1,0 +1,16 @@
+{
+  "source": "mcd12q1",
+  "product": "MODIS MCD12Q1 v061 LC_Type1 (IGBP, 500 m)",
+  "files": [
+    "MCD12Q1.A2016001.h16v07.061.2022166185716.hdf"
+  ],
+  "groups": [
+    "forest",
+    "savanna",
+    "shrubland",
+    "grassland",
+    "cropland",
+    "other"
+  ],
+  "cells": 933
+}

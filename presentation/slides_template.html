@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>FireSync Sahel — NASA Space Apps Challenge · Dakar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #f5f1ea; --paper: #fffdf9; --ink: #1d1b19; --ink2: #4f4b46; --muted: #8a847b; --line: #e4ddd2;
+    --brand: #b93c17; --brand-dark: #7a2412; --ember: #3b1209; --amber: #f9a23f; --gold: #ffd27a;
+    --forest: #1f5b3f;
+  }
+  @page { size: 1600px 900px; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #555; }
+  body { font-family: Inter, "Segoe UI", system-ui, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide { width: 1600px; height: 900px; position: relative; overflow: hidden; background: var(--sand);
+    padding: 56px 80px 0; display: flex; flex-direction: column; page-break-after: always; break-after: page; }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+  .kicker { font: 700 15px/1 Inter, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--brand); display: flex; align-items: center; gap: 12px; }
+  .kicker .n { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--brand); color: #fff; letter-spacing: 0; font-size: 15px; }
+  h1, h2, h3 { font-family: Sora, Inter, sans-serif; margin: 0; letter-spacing: -.02em; }
+  h2 { font-size: 46px; line-height: 1.08; font-weight: 800; margin-top: 16px; max-width: 1280px; }
+  h2 em { font-style: normal; color: var(--brand); }
+  .lead { font-size: 20px; line-height: 1.5; color: var(--ink2); margin: 14px 0 0; max-width: 1180px; }
+  .cols { display: grid; gap: 40px; margin-top: 30px; flex: 1; min-height: 0; }
+  .stat { padding: 18px 0 18px 22px; border-left: 4px solid var(--brand); }
+  .stat b { display: block; font: 800 50px/1 Sora, sans-serif; color: var(--brand); letter-spacing: -.02em; }
+  .stat b small { font-size: 26px; font-weight: 700; }
+  .stat span { display: block; font-size: 17px; line-height: 1.4; color: var(--ink2); margin-top: 8px; }
+  .stat.dark b { color: var(--ink); }
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  /* chart cards that fill the space left above the footer */
+  .chartcard { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+  .chart.grow { flex: 1; min-height: 0; }
+  .chart.grow svg { width: 100%; height: 100%; }
+  .ctitle { font: 700 17px Sora, sans-serif; margin: 0 0 4px 4px; }
+  .stack.tight { gap: 10px; }
+  .stack.tight .stat { padding: 10px 0 10px 20px; }
+  .stack.tight .stat b { font-size: 44px; }
+  .stack.tight .stat span { font-size: 16px; margin-top: 6px; }
+  .chart svg text { font-family: Inter, "Segoe UI", sans-serif !important; }
+  .cap { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+  .note { font-size: 16px; line-height: 1.45; color: var(--ink2); }
+  .pill { display: inline-block; font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 99px; background: #f6e2d6; color: var(--brand-dark); }
+  /* footer on content slides */
+  .foot { position: absolute; left: 80px; right: 80px; bottom: 22px; height: 52px; display: flex; align-items: center; gap: 18px;
+    border-top: 1px solid var(--line); padding-top: 10px; }
+  .foot .src { flex: 1; font-size: 11.5px; line-height: 1.35; color: var(--muted); }
+  .foot .page { font: 700 14px Sora, sans-serif; color: var(--ink2); white-space: nowrap; }
+  .logo { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; height: 46px; padding: 3px 8px; background: #fff; border: 1px solid var(--line); }
+  .logo img { height: 100%; width: auto; display: block; }
+  .logo.dark { background: #161821; border-color: #161821; padding: 5px 10px; }
+  .content-bottom { height: 96px; flex: none; }
+
+  /* ---------- cover */
+  .cover { background: radial-gradient(1200px 700px at 78% 30%, #c2481d 0%, #7a2412 45%, #2a0c06 100%); color: #fff; padding: 64px 90px; }
+  .hex { position: absolute; inset: 0; opacity: .10; }
+  .cover .kicker { color: var(--gold); }
+  .cover h1 { font-size: 104px; line-height: .98; font-weight: 800; margin-top: 26px; }
+  .cover h1 span { color: var(--gold); }
+  .cover .sub { font-size: 27px; line-height: 1.4; color: #ffe2cf; max-width: 880px; margin-top: 24px; }
+  .cover .hook { margin-top: 64px; display: flex; gap: 18px; }
+  .cover .hook div { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; padding: 16px 20px; min-width: 210px; }
+  .cover .hook b { font: 800 34px/1 Sora, sans-serif; display: block; }
+  .cover .hook span { font-size: 14.5px; color: #ffd9c4; display: block; margin-top: 6px; line-height: 1.35; }
+  .team { position: absolute; left: 90px; bottom: 56px; display: flex; gap: 18px; align-items: center; }
+  .team .who { display: flex; align-items: center; gap: 14px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 12px 18px 12px 12px; }
+  .avatar { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font: 800 19px Sora, sans-serif; color: #2a0c06; background: linear-gradient(135deg, #ffd27a, #f9a23f); }
+  .who b { display: block; font-size: 19px; }
+  .who span { display: block; font-size: 14px; color: #ffd9c4; margin-top: 2px; }
+  .team .lab { font: 700 13px Inter; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin-right: 6px; }
+  .cover-logos { position: absolute; right: 90px; bottom: 56px; display: flex; gap: 14px; align-items: center; }
+  .cover-logos .logo { height: 92px; border: 0; padding: 6px 12px; }
+  .cover-logos .logo.dark { padding: 10px 16px; border: 1px solid rgba(255,255,255,.18); }
+  .flame { position: absolute; right: 120px; top: 110px; width: 380px; height: 380px; }
+
+  /* ---------- Amazon panel */
+  .amz { background: linear-gradient(160deg, #1f5b3f, #0f2f21); color: #fff; border-radius: 22px; padding: 26px 30px; display: flex; flex-direction: column; gap: 14px; }
+  .amz .kick { font: 700 13px Inter; letter-spacing: .16em; text-transform: uppercase; color: #9fe3bd; }
+  .amz b { font: 800 50px/1 Sora, sans-serif; display: block; }
+  .amz span { font-size: 16px; line-height: 1.4; color: #d7f2e3; display: block; }
+  .amz .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .amz .row div { background: rgba(255,255,255,.08); border-radius: 14px; padding: 14px 16px; }
+  .amz .row b { font-size: 26px; }
+  .amz .row span { font-size: 14.5px; margin-top: 4px; }
+  .amz .row div { padding: 12px 16px; }
+  .amz .cmp { margin-top: auto; background: rgba(0,0,0,.24); border-radius: 14px; padding: 12px 16px; font-size: 15px; line-height: 1.45; color: #e7f6ee; }
+  .amz span b, .tile p b, .note b, .cap b { font: inherit; font-weight: 700; display: inline; color: inherit; letter-spacing: 0; }
+  .amz span b { color: #fff; }
+  .next { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; margin-top: 14px; }
+  .next h3 { font-size: 17px; color: var(--brand); margin-bottom: 6px; }
+  .next ul { margin: 0; padding-left: 18px; font-size: 14.5px; line-height: 1.5; color: var(--ink2); }
+
+  /* ---------- consequences */
+  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px; }
+  .tile { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 24px 26px; display: grid; grid-template-columns: 64px 1fr; gap: 6px 18px; }
+  .tile .ic { grid-row: span 3; width: 64px; height: 64px; border-radius: 16px; background: #f6e2d6; display: grid; place-items: center; }
+  .tile .ic svg { width: 34px; height: 34px; stroke: var(--brand); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tile h3 { font-size: 22px; }
+  .tile b { font: 800 36px/1.05 Sora, sans-serif; color: var(--brand); }
+  .tile p { margin: 0; font-size: 16px; line-height: 1.45; color: var(--ink2); }
+  .bridge { margin-top: 22px; background: var(--ink); color: #fff; border-radius: 18px; padding: 20px 26px; font-size: 20px; line-height: 1.45; display: flex; gap: 18px; align-items: center; }
+  .bridge b { color: var(--gold); }
+
+  /* ---------- solution */
+  .feat { display: grid; grid-template-columns: 50px 1fr; gap: 4px 16px; align-items: start; }
+  .feat .k { grid-row: span 2; width: 50px; height: 50px; border-radius: 14px; background: var(--brand); color: #fff; display: grid; place-items: center; font: 800 20px Sora, sans-serif; }
+  .feat h3 { font-size: 21px; margin-top: 2px; }
+  .feat p { margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--ink2); }
+  .shot { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 18px 40px rgba(59,18,9,.16); background: #fff; }
+  .shot img { width: 100%; display: block; }
+
+  /* ---------- pipeline */
+  .pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 26px; }
+  .step { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 16px 16px 18px; position: relative; }
+  .step .k { font: 800 13px Inter; letter-spacing: .12em; color: var(--brand); text-transform: uppercase; }
+  .step h3 { font-size: 18px; margin-top: 6px; }
+  .step p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.42; color: var(--ink2); }
+  .step:not(:last-child)::after { content: ""; position: absolute; right: -12px; top: 50%; width: 10px; height: 10px; border-top: 2.5px solid var(--brand); border-right: 2.5px solid var(--brand); transform: translateY(-50%) rotate(45deg); }
+  .res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .res div { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; }
+  .res b { font: 800 30px/1.05 Sora, sans-serif; color: var(--brand); display: block; }
+  .res span { font-size: 14px; color: var(--ink2); line-height: 1.4; display: block; margin-top: 4px; }
+  .thanks { display: flex; align-items: center; gap: 18px; background: var(--ink); color: #fff; border-radius: 16px; padding: 14px 20px; margin-top: 14px; }
+  .thanks h3 { font-size: 26px; color: var(--gold); }
+  .thanks span { font-size: 15.5px; color: #e8e2da; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ 1. COVER -->
+<section class="slide cover">
+  <svg class="hex" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><pattern id="hx" width="52" height="90" patternUnits="userSpaceOnUse">
+      <path d="M26 0l26 15v30L26 60 0 45V15z M26 60v30" fill="none" stroke="#fff" stroke-width="1.2"/></pattern></defs>
+    <rect width="1600" height="900" fill="url(#hx)"/></svg>
+  {{flame}}
+  <div class="kicker">NASA Space Apps Challenge · Dakar · Sénégal</div>
+  <h1>FireSync <span>Sahel</span></h1>
+  <p class="sub">25 ans de feux vus de l'espace pour anticiper la prochaine saison — du département au Sahel, avec l'intelligence artificielle.</p>
+  <div class="hook">
+    <div><b>{{n_det}}</b><span>détections de feux par satellite<br>au Sénégal et en Gambie depuis 2000</span></div>
+    <div><b>5 satellites</b><span>Terra, Aqua, S-NPP,<br>NOAA-20, NOAA-21</span></div>
+    <div><b>1 série</b><span>harmonisée, validée,<br>et une prévision à 4 semaines</span></div>
+  </div>
+  <div class="team"><span class="lab">L'équipe</span>
+    <div class="who"><div class="avatar">PW</div><div><b>Papa Seydou WANE</b><span>@papaseydouwane · Sénégal</span></div></div>
+    <div class="who"><div class="avatar">BD</div><div><b>Berthe Diatta Diaite</b><span>Sénégal</span></div></div>
+  </div>
+  <div class="cover-logos">
+    <span class="logo dark"><img src="{{logo_sa}}" alt="NASA Space Apps Challenge"></span>
+    <span class="logo"><img src="{{logo_sensat}}" alt="SENSAT — Projet Spatial du Sénégal"></span>
+  </div>
+</section>
+
+<!-- ============================================================ 2. KEDOUGOU -->
+<section class="slide">
+  <div class="kicker"><span class="n">1</span> Un département · Kédougou</div>
+  <h2>À Kédougou, <em>plus d'un tiers du département</em> brûle à chaque saison sèche</h2>
+  <div class="cols" style="grid-template-columns: 450px 1fr;">
+    <div class="stack tight">
+      <div class="stat"><b>{{ked_frac}}<small>&nbsp;%</small></b><span>de la surface du département brûle en moyenne chaque année (≈&nbsp;{{ked_ha}}&nbsp;ha sur {{ked_area}}&nbsp;km²)</span></div>
+      <div class="stat"><b>≈&nbsp;{{ked_mean}}</b><span>détections de feux actifs par saison : la plus forte densité du Sénégal ({{ked_density}} pour 1&nbsp;000&nbsp;km²)</span></div>
+      <div class="stat"><b>{{ked_record}}</b><span>détections en {{ked_record_label}} : saison record depuis 2000</span></div>
+      <div class="card note" style="padding:16px 20px"><span class="pill">Saison type</span>&nbsp; début <b>{{ked_onset}}</b> · pic <b>{{ked_peak}}</b> · fin <b>{{ked_end}}</b>.<br>
+        En 2024-25, les Eaux et Forêts y ont programmé <b>54 feux précoces sur 335&nbsp;976&nbsp;ha</b> pour casser la saison des feux tardifs.</div>
+    </div>
+    <div class="card chartcard" style="padding:16px 16px 12px">
+      <div class="ctitle">Calendrier des feux de Kédougou, saison par saison (2001 → 2026)</div>
+      <div class="chart grow">{{svg:kedougou_heatmap}}</div>
+      <div class="cap" style="margin:4px 4px 0">Chaque ligne est une saison (septembre → août), chaque case une semaine ; plus c'est sombre, plus il y a de feux. Série FireSync harmonisée MODIS + VIIRS.</div>
+    </div>
+  </div>
+  <div class="content-bottom"></div>
+  {{foot:2:Sources : NASA FIRMS (MODIS, VIIRS), MODIS MCD64A1 (surfaces brûlées 2001-2024) — calculs FireSync. Feux précoces : Inspection régionale des Eaux et Forêts de Kédougou, via Senego (nov. 2024).}}
+</section>
+
+<!-- ============================================================ 3. SENEGAL -->
+<section class="slide">
+  <div class="kicker"><span class="n">2</span> Le pays · Sénégal</div>
+  <h2>Le Sénégal : <em>près d'un quart du territoire</em> brûle chaque année</h2>
+  <div class="cols" style="grid-template-columns: 1fr 520px;">
+    <div class="card chartcard" style="padding:12px 16px 8px">
+      <div class="chart grow">{{svg:senegal_map}}</div>
+    </div>
+    <div class="stack tight">
+      <div class="stat"><b>≈&nbsp;{{sen_mha}}<small>&nbsp;M&nbsp;ha</small></b><span>brûlés en moyenne chaque année, soit {{sen_pct}}&nbsp;% du pays (MODIS, 2001-2024)</span></div>
+      <div class="stat"><b>{{se_share}}<small>&nbsp;%</small></b><span>des feux détectés se concentrent dans 4 régions — Tambacounda, Kédougou, Kolda, Sédhiou — qui couvrent {{se_area}}&nbsp;% du pays</span></div>
+      <div class="stat"><b>≈&nbsp;{{sen_det}}</b><span>détections de feux actifs par saison au Sénégal ; la saison va de novembre à mai</span></div>
+      <div class="card note" style="padding:16px 20px">Le nord (Ferlo, vallée du fleuve) brûle moins souvent, mais chaque feu y détruit le pâturage de toute la saison sèche : <b>1&nbsp;350&nbsp;ha</b> partis en fumée à Linguère en 2025.</div>
+    </div>
+  </div>
+  <div class="content-bottom"></div>
+  {{foot:3:Sources : NASA FIRMS (MODIS, VIIRS) et MODIS MCD64A1 — calculs FireSync par département (limites geoBoundaries). Linguère : Service des Eaux et Forêts, via Senego (2025).}}
+</section>
+
+<!-- ============================================================ 4. SAHEL + AMAZON -->
+<section class="slide">
+  <div class="kicker"><span class="n">3</span> Du Sahel à l'Amazonie</div>
+  <h2>Un même fléau, <em>du Sahel à l'Amazonie</em></h2>
+  <div class="cols" style="grid-template-columns: 1fr 1fr;">
+    <div class="card chartcard">
+      <div style="font: 700 19px Sora">Afrique de l'Ouest et Sahel : feux détectés en 2024</div>
+      <div class="cap" style="margin:4px 0 8px">Détections MODIS (Terra + Aqua) par pays — mêmes satellites, même méthode</div>
+      <div class="chart grow">{{svg:sahel_bars}}</div>
+      <div class="note" style="margin-top:6px">La bande soudano-sahélienne brûle à chaque saison sèche : <b>l'Afrique concentre environ 70&nbsp;% des surfaces brûlées de la planète</b>.</div>
+    </div>
+    <div class="amz">
+      <div class="kick">Amazonie brésilienne · 2024</div>
+      <div><b>&gt; 137 000</b><span>foyers de chaleur détectés par satellite : le plus haut niveau depuis 17 ans</span></div>
+      <div class="row">
+        <div><b>+&nbsp;43&nbsp;%</b><span>de foyers par rapport à 2023 (98&nbsp;646)</span></div>
+        <div><b>54&nbsp;561</b><span>foyers dans le seul État du Pará</span></div>
+        <div><b>15,6&nbsp;M&nbsp;ha</b><span>brûlés en 2024 : record de la série MapBiomas</span></div>
+        <div><b>6,7&nbsp;M&nbsp;ha</b><span>de forêt tropicale brûlée : la forêt devient la première touchée</span></div>
+      </div>
+      <span style="font-size:16px;line-height:1.45">Sécheresse record, déforestation et feux agricoles : la forêt tropicale, puits de carbone mondial, brûle à son tour. Les mêmes satellites NASA observent les deux continents : <b>notre outil s'applique partout.</b></span>
+      <span class="cmp">À titre de comparaison, le Sénégal, environ 21 fois plus petit que l'Amazonie brésilienne, brûle <b>≈&nbsp;{{sen_mha}}&nbsp;M&nbsp;ha</b> en une année ordinaire.</span>
+    </div>
+  </div>
+  <div class="content-bottom"></div>
+  {{foot:4:Sources : NASA FIRMS, archives MODIS par pays 2024 (feux de végétation présumés) — calculs FireSync. Amazonie : INPE, Programa Queimadas (presse brésilienne, déc. 2024) ; MapBiomas Fogo, rapport annuel 2025. Part africaine : ESA Climate Change Initiative / GFED.}}
+</section>
+
+<!-- ============================================================ 5. CONSEQUENCES -->
+<section class="slide">
+  <div class="kicker"><span class="n">4</span> Les conséquences</div>
+  <h2>Ce que les feux coûtent : <em>pâturages, sols, forêts</em> et autosuffisance alimentaire</h2>
+  <div class="tiles">
+    <div class="tile"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20c4-1 6-4 6-9M10 11c0-4 3-6 7-7-1 4-3 7-7 7zM10 11c-3 0-5-2-6-5 3 0 5 2 6 5zM14 20c1-3 3-4 6-4"/></svg></div>
+      <h3>Élevage et alimentation</h3><b>≈ 6 millions de tonnes</b>
+      <p>de fourrage détruites en 2024-25 : <b>499 milliards FCFA</b> de pertes. Sans pâturage de saison sèche, le bétail s'affaiblit, la transhumance part plus tôt, lait et viande manquent.</p></div>
+    <div class="tile"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 18h18M5 18c1-4 3-6 7-6s6 2 7 6M8 9l1-3M12 8V4M16 9l-1-3"/></svg></div>
+      <h3>Sols et récoltes</h3><b>Fertilité en baisse</b>
+      <p>Les feux répétés détruisent la matière organique et laissent le sol nu face au vent et aux premières pluies : érosion, rendements plus faibles, vergers d'anacardiers et greniers menacés.</p></div>
+    <div class="tile"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 22v-6M7 16h10l-5-12z"/><path d="M9 11h6"/></svg></div>
+      <h3>Forêts et biodiversité</h3><b>339 673 ha</b>
+      <p>de forêts perdus au Sénégal entre 2005 et 2023, les feux de brousse parmi les causes. Les zones les plus brûlées entourent le parc national du Niokolo-Koba.</p></div>
+    <div class="tile"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 15c2-2 4-2 6 0s4 2 6 0 3-2 4-1M4 10c2-2 4-2 6 0s4 2 6 0 3-2 4-1M7 20h10"/></svg></div>
+      <h3>Climat et santé</h3><b>≈ 50 %</b>
+      <p>des émissions de carbone des feux de la planète viennent d'Afrique. Les fumées dégradent l'air respiré dans les villages et les villes pendant toute la saison sèche.</p></div>
+  </div>
+  <div class="bridge"><span>Les données existent : la NASA observe chaque feu du Sahel depuis 2000. <b>Ce qui manque, c'est un outil qui les transforme en décisions locales, à temps</b> — avant que la saison ne s'emballe.</span></div>
+  <div class="content-bottom"></div>
+  {{foot:5:Sources : DEFCCS, bilan de la campagne 2024-2025 (Le Soleil, 2026) ; expert des Eaux et Forêts (Ndarinfo) ; AGRHYMET/CILSS, bulletin feux (oct. 2025) ; ESA Climate Change Initiative / GFED.}}
+</section>
+
+<!-- ============================================================ 6. SOLUTION -->
+<section class="slide">
+  <div class="kicker"><span class="n">5</span> Notre solution</div>
+  <h2>FireSync Sahel : <em>de l'observation satellite à l'alerte</em> au village</h2>
+  <div class="cols" style="grid-template-columns: 520px 1fr; gap: 44px">
+    <div class="stack" style="gap:20px; margin-top:4px">
+      <div class="feat"><div class="k">1</div><h3>Le calendrier des feux de n'importe quelle zone</h3>
+        <p>Département, forêt classée, parcours pastoral ou polygone dessiné : 25 ans de saisons, début, pic, fin, semaines critiques et années anormales.</p></div>
+      <div class="feat"><div class="k">2</div><h3>Une prévision IA à 1-4 semaines</h3>
+        <p>Pour chaque département du Sénégal et de la Gambie : feux attendus, intervalle de confiance, niveau de risque et classement « où agir en priorité ».</p></div>
+      <div class="feat"><div class="k">3</div><h3>Une alerte SMS / WhatsApp prête à envoyer</h3>
+        <p>Un message court en français ou en anglais pour les comités de lutte et les chefs de village : pare-feux, patrouilles, sensibilisation.</p></div>
+      <div class="feat"><div class="k">4</div><h3>Des bulletins et une plateforme ouverte</h3>
+        <p>Bulletins PDF bilingues, exports CSV / GeoJSON, espaces public, pro et admin ; données mises à jour chaque semaine depuis la NASA.</p></div>
+    </div>
+    <div>
+      <div class="shot"><img src="assets/app_forecast.png" alt="Page Prévisions IA de FireSync Sahel"></div>
+      <div class="cap">Plateforme FireSync Sahel en fonctionnement — prévision émise avec les données NASA jusqu'au {{issue_end}} : à Saraya, ≈ {{saraya_mu}} détections attendues sur 2 semaines (×{{saraya_ratio}} la normale), message d'alerte généré automatiquement.</div>
+    </div>
+  </div>
+  <div class="content-bottom"></div>
+  {{foot:6:FireSync Sahel — plateforme web bilingue FR / EN (FastAPI, MapLibre, Observable Plot), prévision par apprentissage automatique (gradient boosting de Poisson, scikit-learn).}}
+</section>
+
+<!-- ============================================================ 7. HOW IT'S BUILT -->
+<section class="slide">
+  <div class="kicker"><span class="n">6</span> Comment c'est construit</div>
+  <h2>25 ans de données NASA, <em>harmonisées et validées</em></h2>
+  <div class="pipe">
+    <div class="step"><div class="k">Données NASA</div><h3>{{n_det}} détections</h3><p>FIRMS : MODIS Terra / Aqua (2000 →), VIIRS S-NPP (2012 →), NOAA-20 et NOAA-21 ; occupation du sol MCD12Q1, surfaces brûlées MCD64A1.</p></div>
+    <div class="step"><div class="k">Grille</div><h3>Hexagones H3</h3><p>Chaque détection est nettoyée puis rangée dans une grille hexagonale (~5 km² et ~250 km²), semaine par semaine.</p></div>
+    <div class="step"><div class="k">Harmonisation IA</div><h3>MODIS → VIIRS</h3><p>Le modèle apprend la conversion par cellule, saison et occupation du sol, avec les passages simultanés Aqua / S-NPP ; relève NOAA-20 / 21 après S-NPP.</p></div>
+    <div class="step"><div class="k">Validation</div><h3>Années retirées</h3><p>Chaque année est retirée puis prédite ; contrôle indépendant avec les surfaces brûlées MCD64A1 ; incertitude à 90 % calibrée.</p></div>
+    <div class="step"><div class="k">Décision</div><h3>Prévision et alertes</h3><p>IA de prévision à 4 semaines, carte des risques, SMS, bulletins PDF, API ouverte.</p></div>
+  </div>
+  <div class="cols" style="grid-template-columns: 1fr 560px; margin-top: 18px; gap: 26px">
+    <div class="card chartcard" style="padding:14px 16px 6px">
+      <div class="ctitle" style="font-size:16px">Sénégal + Gambie : le collage naïf invente une « explosion » des feux en 2012</div>
+      <div class="chart grow">{{svg:harmonized_vs_naive}}</div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="res">
+        <div><b>21&nbsp;%</b><span>d'erreur par zone et par semaine (collage naïf : 73&nbsp;%)</span></div>
+        <div><b>×1,04</b><span>saut en 2012 au lieu de ×3,3 : la rupture est corrigée</span></div>
+        <div><b>+10&nbsp;%</b><span>de précision de la prévision IA par rapport à la normale</span></div>
+      </div>
+      <div class="next"><h3>Et après ?</h3><ul>
+        <li>Étendre FireSync à tout le Sahel : Mali, Burkina Faso, Niger, Tchad, Mauritanie.</li>
+        <li>Ajouter la météo à l'IA : pluies de l'hivernage, vent, humidité.</li>
+        <li>Envoyer les alertes automatiquement aux comités de lutte, avec les Eaux et Forêts.</li></ul></div>
+      <div class="thanks">
+        <div><h3>Merci !</h3><span>Papa Seydou WANE<br>Berthe Diatta Diaite</span></div>
+        <div style="margin-left:auto;display:flex;gap:10px">
+          <span class="logo dark" style="height:54px"><img src="{{logo_sa}}" alt="NASA Space Apps Challenge"></span>
+          <span class="logo" style="height:54px"><img src="{{logo_sensat}}" alt="SENSAT"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content-bottom"></div>
+  {{foot:7:Validation : saisons 2012-2020 retirées une à une ; prévision : saisons 2013-2024 retirées, comparaison à la climatologie. FireSync Sahel n'est pas un produit officiel de la NASA.}}
+</section>
+
+</body>
+</html>
