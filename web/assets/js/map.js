@@ -1,6 +1,6 @@
 // MapLibre map with hexagon activity layer, admin units, selected zone,
 // polygon drawing and a deck.gl detections layer (loaded on demand).
-import { cssVar, fmt, fmtInt, esc, showTip, hideTip } from "./ui.js";
+import { cssVar, fmt, fmtInt, esc, showTip, hideTip, PCT } from "./ui.js";
 import { t } from "./i18n.js";
 
 const STYLE = {
@@ -197,7 +197,7 @@ export function hexLegend(info) {
   if (!info) return "";
   const { stops, metric } = info;
   if (metric === "trend" || metric === "anomaly") {
-    const lab = metric === "trend" ? [`${fmt(stops[0], 0)} %`, "0", `+${fmt(stops[4], 0)} %`] : ["×0,25", "×1", "×4"];
+    const lab = metric === "trend" ? [`${fmt(stops[0], 0)}${PCT()}`, "0", `+${fmt(stops[4], 0)}${PCT()}`] : ["×0,25", "×1", "×4"];
     return `<div class="map-panel map-legend"><b class="small">${esc(metric === "trend" ? t("ex.unit_trend") : t("ex.unit_anom"))}</b>
       <div class="scale" style="background:linear-gradient(90deg,#2a78d6,#86b6ef,${isDark() ? "#383835" : "#f0efec"},#ec835a,#d03b3b)"></div>
       <div class="row small muted" style="justify-content:space-between">${lab.map((l) => `<span>${l}</span>`).join("")}</div></div>`;

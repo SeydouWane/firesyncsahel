@@ -1,7 +1,7 @@
 // Charts (Observable Plot). Colours are resolved from CSS tokens at render time
 // so light/dark themes both get their own validated steps.
 import { t, getLang } from "./i18n.js";
-import { cssVar, fmt, fmtInt, esc } from "./ui.js";
+import { cssVar, fmt, fmtInt, esc, PCT, COLON } from "./ui.js";
 
 const C = () => ({
   ink: cssVar("--ink"), ink2: cssVar("--ink-2"), muted: cssVar("--muted"), grid: cssVar("--chart-grid"),
@@ -97,8 +97,8 @@ export function climatology(el, cal) {
     x: "x", y: "p50", ...tipStyle(c),
     title: (d) => {
       const cv = cur.find((q) => q.x === d.x);
-      return `${labels[d.x]}\n${t("ex.median")} : ${fmt(d.p50, 0)}\n${t("ex.band50")} : ${fmt(d.p25, 0)} – ${fmt(d.p75, 0)}\n${t("ex.band80")} : ${fmt(d.p10, 0)} – ${fmt(d.p90, 0)}` +
-        (cv ? `\n${cal.current.label} : ${fmt(cv.v, 0)} (${t("ex.pct")} ${fmt(cv.pct, 0)})` : "");
+      return `${labels[d.x]}\n${t("ex.median")}${COLON()} ${fmt(d.p50, 0)}\n${t("ex.band50")}${COLON()} ${fmt(d.p25, 0)} – ${fmt(d.p75, 0)}\n${t("ex.band80")}${COLON()} ${fmt(d.p10, 0)} – ${fmt(d.p90, 0)}` +
+        (cv ? `\n${cal.current.label}${COLON()} ${fmt(cv.v, 0)} (${t("ex.pct")} ${fmt(cv.pct, 0)})` : "");
     },
   })));
   mount(el, Plot.plot(base(c, {
@@ -160,7 +160,7 @@ export function phenology(el, cal) {
       Plot.barX(rows, { y: "label", x1: (d) => d.onset, x2: (d) => d.end + 1, fill: c.modis, fillOpacity: 0.55, rx: 3 }),
       Plot.dot(rows, { y: "label", x: (d) => d.peak + 0.5, r: 4, fill: c.brand, stroke: c.surface, strokeWidth: 1.5 }),
       Plot.tip(rows, Plot.pointerY({ y: "label", x: (d) => d.peak + 0.5, ...tipStyle(c),
-        title: (d) => `${d.label}\n${t("ex.onset")} : ${labels[d.onset]}\n${t("ex.peak")} : ${labels[d.peak]}\n${t("ex.end")} : ${labels[d.end]}\n${t("ex.duration")} : ${d.duration} ${t("common.weeks")}` })),
+        title: (d) => `${d.label}\n${t("ex.onset")}${COLON()} ${labels[d.onset]}\n${t("ex.peak")}${COLON()} ${labels[d.peak]}\n${t("ex.end")}${COLON()} ${labels[d.end]}\n${t("ex.duration")}${COLON()} ${d.duration} ${t("common.weeks")}` })),
     ].filter(Boolean),
   })));
 }
@@ -190,7 +190,7 @@ export function lines(el, series, { height = 260, yFormat = fmtInt, xLabel = nul
     const e = ends.find((q) => q.s === s);
     if (endLabels && e) marks.push(Plot.text([e.last], { x: "x", y: "y", text: () => s.short || s.label, dx: 6, dy: e.dy, textAnchor: "start", fill: c.ink2, fontWeight: 650 }));
   }
-  marks.push(Plot.tip(flat, Plot.pointer({ x: "x", y: "y", ...tipStyle(c), title: (d) => `${d.x}\n${d.label} : ${yFormat(d.y)}` })));
+  marks.push(Plot.tip(flat, Plot.pointer({ x: "x", y: "y", ...tipStyle(c), title: (d) => `${d.x}\n${d.label}${COLON()} ${yFormat(d.y)}` })));
   mount(el, Plot.plot(base(c, {
     width, height, marginLeft: 54, marginRight: endLabels ? 96 : 16, marginBottom: 30,
     x: { label: xLabel, tickFormat: (d) => String(d), tickSize: 0 },
@@ -204,7 +204,7 @@ export function legendHtml(items) {
 }
 
 // ------------------------------------------------------------- grouped bars (method page)
-export function groupedBars(el, rows, { groups, keys, labels, yFormat = (v) => fmt(v, 0) + " %", height = 260 }) {
+export function groupedBars(el, rows, { groups, keys, labels, yFormat = (v) => fmt(v, 0) + PCT(), height = 260 }) {
   const c = C();
   const width = W(el);
   const flat = rows.flatMap((r) => keys.map((k, i) => ({ g: r.g, k, v: r[k], color: c.cat[i] })).filter((d) => d.v != null));
@@ -244,8 +244,8 @@ export function forecastChart(el, z, lang = getLang()) {
       Plot.tickY(all, { x: "x", y: (d) => (d.kind === "obs" ? d.n : d.p50), stroke: c.ink2, strokeWidth: 2 }),
       Plot.ruleY([0], { stroke: c.axis }),
       Plot.tip(all, Plot.pointerX({ x: "x", y: "v", ...tipStyle(c), title: (d) => d.kind === "obs"
-        ? `${d.x} · ${t("fc.observed")}\n${fmtInt(d.v)}\n${t("fc.normal")} : ${fmtInt(d.n)}`
-        : `${d.x} · ${t("fc.predicted")}\n${fmtInt(d.v)} (${fmtInt(d.lo)} – ${fmtInt(d.hi)})\n${t("fc.normal")} : ${fmtInt(d.p50)}` })),
+        ? `${d.x} · ${t("fc.observed")}\n${fmtInt(d.v)}\n${t("fc.normal")}${COLON()} ${fmtInt(d.n)}`
+        : `${d.x} · ${t("fc.predicted")}\n${fmtInt(d.v)} (${fmtInt(d.lo)} – ${fmtInt(d.hi)})\n${t("fc.normal")}${COLON()} ${fmtInt(d.p50)}` })),
     ],
   })));
   return `<div class="legend"><span><i class="sw" style="background:${c.viirs}"></i>${esc(t("fc.observed"))}</span>
@@ -262,8 +262,8 @@ export function reliabilityChart(el, rel, raw = null) {
   const name = { cal: t("fc.rel_cal"), raw: t("fc.rel_raw") };
   mount(el, Plot.plot(base(c, {
     width, height: 230, marginLeft: 44, marginBottom: 36,
-    x: { domain: [0, 1], label: t("fc.prob_above"), tickFormat: (v) => `${Math.round(v * 100)} %` },
-    y: { domain: [0, 1], label: null, tickFormat: (v) => `${Math.round(v * 100)} %` },
+    x: { domain: [0, 1], label: t("fc.prob_above"), tickFormat: (v) => `${Math.round(v * 100)}${PCT()}` },
+    y: { domain: [0, 1], label: null, tickFormat: (v) => `${Math.round(v * 100)}${PCT()}` },
     marks: [
       Plot.gridY({ stroke: c.grid, strokeOpacity: 1 }),
       Plot.line([[0, 0], [1, 1]], { stroke: c.axis, strokeWidth: 1 }),
@@ -272,7 +272,7 @@ export function reliabilityChart(el, rel, raw = null) {
       Plot.line(rel, { x: "p", y: "obs", stroke: c.brand, strokeWidth: 2 }),
       Plot.dot(rel, { x: "p", y: "obs", r: (d) => 3.5 + Math.sqrt(d.n) / 12, fill: c.brand, stroke: c.surface, strokeWidth: 1.5 }),
       Plot.tip(pts, Plot.pointer({ x: "p", y: "obs", ...tipStyle(c),
-        title: (d) => `${name[d.s]}\n${Math.round(d.p * 100)} % → ${Math.round(d.obs * 100)} %\nn = ${fmtInt(d.n)}` })),
+        title: (d) => `${name[d.s]}\n${Math.round(d.p * 100)}${PCT()} → ${Math.round(d.obs * 100)}${PCT()}\nn = ${fmtInt(d.n)}` })),
     ],
   })));
   return `<div class="legend"><span><i class="ln" style="background:${c.brand}"></i>${esc(name.cal)}</span>

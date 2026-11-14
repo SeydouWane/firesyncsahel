@@ -1,8 +1,16 @@
 // Zone results dashboard (shared by the public explorer and the pro analysis).
 import { t, getLang } from "../i18n.js";
-import { esc, fmt, fmtInt, fmtSigned, statusChip, STATUS, icons, $, toast, copyText } from "../ui.js";
+import { esc, fmt, fmtInt, fmtSigned, statusChip, STATUS, icons, $, toast, copyText, PCT, COLON } from "../ui.js";
 import * as charts from "../charts.js";
 import { api } from "../api.js";
+import { plainBox, howTo, zoneStory, weekLine, forecastStory, inPlace } from "../explain.js";
+
+function untilOf(z, h = 2) {
+  const tg = z.issue?.targets?.[h - 1];
+  if (!tg) return null;
+  const d = new Date(tg.start + "T00:00:00"); d.setDate(d.getDate() + 6);
+  return d.toLocaleDateString(getLang() === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long" });
+}
 
 async function loadForecast(container, geometry, name) {
   const box = $("#fc-zone", container);
@@ -15,10 +23,12 @@ async function loadForecast(container, geometry, name) {
         <span class="hint">${esc(t("fc.issued"))} ${esc(z.issue.week_end)}</span>
         <div class="tools"><a class="btn sm ghost" href="#/forecast">${esc(t("nav.forecast"))} →</a></div></div>
       <div class="card-body"><div class="grid g2">
-        <div class="stack" style="gap:10px">${blockHtml(z.next2, t("fc.next2"))}${blockHtml(z.next4, t("fc.next4"))}
+        <div class="stack" style="gap:10px">
+          <div class="story">${forecastStory(inPlace(name), z.next2, z.next4, untilOf(z)).map((p) => `<p>${p}</p>`).join("")}</div>
+          ${blockHtml(z.next2, t("fc.next2"))}${blockHtml(z.next4, t("fc.next4"))}
           <div><div class="sms">${esc(z.message)}</div><div class="row" style="justify-content:space-between;margin-top:6px">
             <span class="sms-meta">${esc(t("fc.sms_h"))}</span><button class="btn sm" id="fc-copy">${icons.copy}${esc(t("fc.copy"))}</button></div></div></div>
-        <div><div class="small strong muted">${esc(t("fc.chart_t"))}</div><div class="chart" id="c-fcz"></div><div id="l-fcz"></div></div>
+        <div><div class="small strong muted">${esc(t("fc.chart_t"))}</div><div class="chart" id="c-fcz"></div><div id="l-fcz"></div>${howTo(t("how.fc"))}</div>
       </div></div></div>`;
     $("#fc-copy", box).addEventListener("click", async () => { if (await copyText(z.message)) toast(t("fc.copied")); });
     const draw = () => { if ($("#c-fcz", box)) $("#l-fcz", box).innerHTML = charts.forecastChart($("#c-fcz", box), z); };
@@ -44,11 +54,11 @@ export function kpis(cal) {
     <div class="kpi"><div class="label">${esc(t("ex.end"))}</div><div class="value">${wk(s.end)}</div><div class="note">&nbsp;</div></div>
     <div class="kpi"><div class="label">${esc(t("ex.duration"))}</div><div class="value">${s.duration ?? "–"}<small>${esc(t("common.weeks"))}</small></div><div class="note">&nbsp;</div></div>
     <div class="kpi"><div class="label">${esc(t("ex.trend"))}</div>
-      <div class="value">${trTotal ? fmtSigned(trTotal.pct_per_decade, 0, " %") : "–"}</div>
+      <div class="value">${trTotal ? fmtSigned(trTotal.pct_per_decade, 0, PCT()) : "–"}</div>
       <div class="note">${trTotal ? `${esc(t("common.per_decade"))} · ${esc(sig(trTotal))}` : "&nbsp;"}</div></div>
     <div class="kpi hl"><div class="label">${esc(t("ex.current"))} ${cur ? esc(cur.label) : ""}</div>
       <div class="value" style="font-size:16px;margin-top:8px">${cur ? statusChip(cur.cumulative_status) : "–"}</div>
-      <div class="note">${cur ? `${esc(t("ex.cum"))} : ${fmtInt(cur.cumulative)}` : "&nbsp;"}</div></div>
+      <div class="note">${cur ? `${esc(t("ex.cum"))}${COLON()} ${fmtInt(cur.cumulative)}` : "&nbsp;"}</div></div>
   </div>`;
 }
 
@@ -61,9 +71,10 @@ export function statusBanner(cal) {
   const bg = st.cls === "crit" ? "var(--crit)" : st.cls === "warn" ? "#b77d00" : st.cls === "ok" ? "var(--ok)" : "var(--muted)";
   return `<div class="status-banner ${cls}">
     <div class="status-icon" style="background:${bg}" aria-hidden="true">${st.icon}</div>
-    <div><div class="small muted strong">${esc(t("ex.current"))} ${esc(cur.label)} · ${esc(t("ex.last_week"))} ${esc(cal.week_labels[ls.fweek])}</div>
+    <div style="min-width:0;flex:1"><div class="small muted strong">${esc(t("ex.current"))} ${esc(cur.label)} · ${esc(t("ex.last_week"))} ${esc(cal.week_labels[ls.fweek])}</div>
       <div class="big">${esc(t("status." + ls.status))}</div>
-      <div class="small ink2">${fmtInt(ls.value)} ${esc(t("common.unit_short"))} · ${esc(t("ex.pct"))} ${fmt(ls.pct, 0)} ${esc(t("ex.vs_hist"))}
+      <p class="plain-line">${weekLine(cal)}</p>
+      <div class="small muted">${fmtInt(ls.value)} ${esc(t("common.unit_short"))} · ${esc(t("ex.pct"))} ${fmt(ls.pct, 0)} ${esc(t("ex.vs_hist"))}
         · ${esc(t("ex.cum"))} ${fmtInt(cur.cumulative)} (${esc(t("ex.pct"))} ${fmt(cur.cumulative_pct, 0)})</div></div>
   </div>`;
 }
@@ -113,6 +124,8 @@ export function renderZone(container, res, { mode = "harmonized", onMode, onStar
         ${extraActions}
       </div>
     </div>
+    ${mode === "harmonized" ? plainBox(zoneStory(res.name, cal), { title: t("plain.zone_t") }) : ""}
+    <div style="height:14px"></div>
     ${statusBanner(cal)}
     <div style="height:14px"></div>
     ${kpis(cal)}
@@ -120,25 +133,25 @@ export function renderZone(container, res, { mode = "harmonized", onMode, onStar
     <div class="grid" style="margin-top:16px">
       <div class="card"><div class="card-head"><h3>${esc(t("ex.heat_t"))}</h3><span class="hint">${esc(t("ex.heat_h"))}</span>
         <div class="tools" id="heat-legend"></div></div>
-        <div class="card-body"><div class="chart" id="c-heat"></div>${charts.sourceLegend()}</div></div>
+        <div class="card-body"><div class="chart" id="c-heat"></div>${charts.sourceLegend()}${howTo(t("how.heat"))}</div></div>
       <div class="grid g2">
         <div class="card"><div class="card-head"><h3>${esc(t("ex.clim_t"))}</h3><span class="hint">${esc(t("ex.clim_h"))}</span></div>
           <div class="card-body">
             ${charts.legendHtml([{ label: t("ex.median"), color: "var(--ink-2)" }, { label: t("ex.band50"), color: "var(--band-inner)" },
               { label: t("ex.band80"), color: "var(--band-outer)" }, ...(cal.current ? [{ label: `${t("ex.current")} ${cal.current.label}`, color: "var(--src-viirs)" }] : []),
               ...(cal.critical?.["50"] ? [{ label: t("ex.crit50"), color: "var(--brand-soft)" }] : [])])}
-            <div class="chart" id="c-clim"></div></div></div>
+            <div class="chart" id="c-clim"></div>${howTo(t("how.clim"))}</div></div>
         <div class="card"><div class="card-head"><h3>${esc(t("ex.annual_t"))}</h3><span class="hint">${esc(t("ex.annual_h"))}</span>
           <div class="tools"><div class="seg"><button data-view="chart" aria-pressed="true">${esc(t("common.chart"))}</button><button data-view="table" aria-pressed="false">${esc(t("common.table"))}</button></div></div></div>
           <div class="card-body"><div id="annual-chart"><div class="chart" id="c-annual"></div>${charts.sourceLegend()}</div>
-            <div id="annual-table" hidden>${charts.annualTable(cal)}</div></div></div>
+            <div id="annual-table" hidden>${charts.annualTable(cal)}</div>${howTo(t("how.annual"))}</div></div>
       </div>
       <div class="grid g2">
         <div class="card"><div class="card-head"><h3>${esc(t("ex.pheno_t"))}</h3><span class="hint">${esc(t("ex.pheno_h"))}</span></div>
-          <div class="card-body"><div class="chart" id="c-pheno"></div></div></div>
+          <div class="card-body"><div class="chart" id="c-pheno"></div>${howTo(t("how.pheno"))}</div></div>
         <div class="stack">
-          <div class="card"><div class="card-head"><h3>${esc(t("ex.crit_t"))}</h3></div><div class="card-body">${criticalHtml(cal)}</div></div>
-          <div class="card"><div class="card-head"><h3>${esc(t("ex.anom_t"))}</h3></div><div class="card-body">${anomaliesHtml(cal)}</div></div>
+          <div class="card"><div class="card-head"><h3>${esc(t("ex.crit_t"))}</h3></div><div class="card-body">${criticalHtml(cal)}${howTo(t("how.crit"))}</div></div>
+          <div class="card"><div class="card-head"><h3>${esc(t("ex.anom_t"))}</h3></div><div class="card-body">${anomaliesHtml(cal)}${howTo(t("how.anom"))}</div></div>
         </div>
       </div>
     </div>`;

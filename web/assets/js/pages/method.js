@@ -1,8 +1,9 @@
 import { api } from "../api.js";
 import { t, getLang } from "../i18n.js";
-import { $, esc, fmt, fmtInt, fmtSigned, loadingBlock, errorBlock, cssVar, icons } from "../ui.js";
+import { $, esc, fmt, fmtInt, fmtSigned, loadingBlock, errorBlock, cssVar, icons, PCT, COLON } from "../ui.js";
 import * as charts from "../charts.js";
 import { footer } from "./data.js";
+import { plainBox } from "../explain.js";
 
 const MODELS = ["naive", "single_ratio", "stratified_eb", "gbm"];
 const SCALES = ["cell_week", "zone_week", "region_week", "zone_year", "region_year"];
@@ -46,7 +47,7 @@ export async function render(main, { space }) {
       ${SCALES.map((s) => `<tr><td>${esc(t("method.scales." + s))}</td>${MODELS.map((m) => {
         const x = v[m]?.[key]?.[s];
         const cov = key === "loyo" && v[m]?.loyo_scaled_coverage ? v[m].loyo_scaled_coverage[s] : x?.coverage90;
-        return `<td class="num">${x ? `${fmt(x.nmae_pct, 1)} %<br><span class="muted small">${fmtSigned(x.bias_pct, 1, " %")}${cov != null ? " · " + fmt(100 * cov, 0) + " %" : ""}</span>` : "–"}</td>`;
+        return `<td class="num">${x ? `${fmt(x.nmae_pct, 1)}${PCT()}<br><span class="muted small">${fmtSigned(x.bias_pct, 1, PCT())}${cov != null ? " · " + fmt(100 * cov, 0) + PCT() : ""}</span>` : "–"}</td>`;
       }).join("")}</tr>`).join("")}
       <tr><td>${esc(t("method.onset_err"))} / ${esc(t("method.peak_err"))} / ${esc(t("method.end_err"))}</td>${MODELS.map((m) => {
         const z = v[m]?.[key === "loyo" ? "season_loyo" : "season_out_of_window"]?.zone;
@@ -54,14 +55,29 @@ export async function render(main, { space }) {
       }).join("")}</tr></tbody></table></div>
       <p class="small muted" style="margin-top:6px">${l === "fr" ? "Cellule : erreur absolue normalisée ; dessous : biais · couverture de l'intervalle 90 %." : "Cell: normalised absolute error; below: bias · 90% interval coverage."}</p>`;
   };
+  const fr = l === "fr";
+  const e = (x, d = 0) => fmt(x, d) + PCT();
+  const plain = [
+    fr ? "Cette page s'adresse aux curieux et aux spécialistes. <b>En résumé</b> :" : "This page is for the curious and for specialists. <b>In short</b>:",
+    `<ul>
+      <li>${fr ? `Coller simplement les anciens (MODIS) et les nouveaux satellites (VIIRS) ferait croire que les feux ont été multipliés par <b>${fmt(st.step_naive, 1)}</b> en 2012. Avec FireSync, ce faux saut disparaît (<b>×${fmt(st.step_harmonised, 2)}</b>, l'idéal étant ×1).`
+               : `Simply joining the old (MODIS) and new (VIIRS) satellites would make fires seem to jump <b>${fmt(st.step_naive, 1)}-fold</b> in 2012. With FireSync, that false jump disappears (<b>×${fmt(st.step_harmonised, 2)}</b>, ideally ×1).`}</li>
+      <li>${fr ? `Testée sur des années qu'elle n'avait jamais vues, la série FireSync se trompe en moyenne de <b>${e(ta.gbm.loyo.zone_week.nmae_pct)}</b> par zone et par semaine, contre <b>${e(ta.naive.loyo.zone_week.nmae_pct)}</b> sans correction.`
+               : `Tested on years it had never seen, the FireSync series is off by <b>${e(ta.gbm.loyo.zone_week.nmae_pct)}</b> on average per area and per week, versus <b>${e(ta.naive.loyo.zone_week.nmae_pct)}</b> without correction.`}</li>
+      <li>${fr ? `Chaque valeur est donnée avec une fourchette : la vraie valeur y tombe <b>${e(100 * ta.gbm.loyo.zone_week.coverage90)}</b> du temps, comme annoncé (90 %).`
+               : `Every value comes with a range: the real value falls inside it <b>${e(100 * ta.gbm.loyo.zone_week.coverage90)}</b> of the time, as announced (90%).`}</li>
+    </ul>`,
+  ];
   body.innerHTML = `
+    ${plainBox(plain, { title: fr ? "Ce qu'il faut retenir" : "Key takeaways" })}
+    <div style="height:16px"></div>
     <div class="kpis">
       <div class="kpi hl"><div class="label">${esc(t("method.nmae"))} · ${esc(t("method.scales.zone_week"))}</div>
-        <div class="value">${fmt(ta.gbm.loyo.zone_week.nmae_pct, 0)} %</div><div class="note">${esc(lab.single_ratio)} : ${fmt(ta.single_ratio.loyo.zone_week.nmae_pct, 0)} % · ${esc(lab.naive)} : ${fmt(ta.naive.loyo.zone_week.nmae_pct, 0)} %</div></div>
+        <div class="value">${fmt(ta.gbm.loyo.zone_week.nmae_pct, 0)}${PCT()}</div><div class="note">${esc(lab.single_ratio)}${COLON()} ${fmt(ta.single_ratio.loyo.zone_week.nmae_pct, 0)}${PCT()} · ${esc(lab.naive)}${COLON()} ${fmt(ta.naive.loyo.zone_week.nmae_pct, 0)}${PCT()}</div></div>
       <div class="kpi"><div class="label">${esc(t("method.bias"))} · ${esc(t("method.scales.region_year"))}</div>
-        <div class="value">${fmtSigned(ta.gbm.loyo.region_year.bias_pct, 1, " %")}</div><div class="note">${esc(lab.naive)} : ${fmtSigned(ta.naive.loyo.region_year.bias_pct, 0, " %")}</div></div>
-      <div class="kpi"><div class="label">${esc(t("method.coverage"))}</div><div class="value">${fmt(100 * ta.gbm.loyo.zone_week.coverage90, 0)} %</div>
-        <div class="note">κ = ${fmt(ta.gbm.kappa, 2)} · ${l === "fr" ? "brut" : "raw"} ${fmt(100 * (ta.gbm.kappa_raw_coverage || 0), 0)} %</div></div>
+        <div class="value">${fmtSigned(ta.gbm.loyo.region_year.bias_pct, 1, PCT())}</div><div class="note">${esc(lab.naive)}${COLON()} ${fmtSigned(ta.naive.loyo.region_year.bias_pct, 0, PCT())}</div></div>
+      <div class="kpi"><div class="label">${esc(t("method.coverage"))}</div><div class="value">${fmt(100 * ta.gbm.loyo.zone_week.coverage90, 0)}${PCT()}</div>
+        <div class="note">κ = ${fmt(ta.gbm.kappa, 2)} · ${l === "fr" ? "brut" : "raw"} ${fmt(100 * (ta.gbm.kappa_raw_coverage || 0), 0)}${PCT()}</div></div>
       <div class="kpi"><div class="label">${esc(t("method.step_harm"))}</div><div class="value">×${fmt(st.step_harmonised, 2)}</div>
         <div class="note">${esc(t("method.step_naive"))} : ×${fmt(st.step_naive, 2)} · ${esc(t("method.step_ideal"))}</div></div>
     </div>
@@ -74,7 +90,7 @@ export async function render(main, { space }) {
     </div>
 
     <div class="card" style="margin-top:16px"><div class="card-head"><h3>${esc(t("method.loyo"))} — Terra + Aqua</h3>
-      <span class="hint">${esc(t("train" in rep ? "" : ""))}${l === "fr" ? "années de feu" : "fire years"} ${rep.train_fire_years[0]}–${rep.train_fire_years.at(-1)} · ${esc(t("method.lc_used"))} : ${esc(rep.land_cover?.product || "–")}</span></div>
+      <span class="hint">${esc(t("train" in rep ? "" : ""))}${l === "fr" ? "années de feu" : "fire years"} ${rep.train_fire_years[0]}–${rep.train_fire_years.at(-1)} · ${esc(t("method.lc_used"))}${COLON()} ${esc(rep.land_cover?.product || "–")}</span></div>
       <div class="card-body">${tableFor("TA")}</div></div>
     <div class="card" style="margin-top:16px"><div class="card-head"><h3>${esc(t("method.loyo"))} — Terra ${l === "fr" ? "seul (2000–2002)" : "only (2000–2002)"}</h3></div><div class="card-body">${tableFor("T")}</div></div>
     <div class="card" style="margin-top:16px"><div class="card-head"><h3>${esc(t("method.oow"))}</h3><span class="hint">${l === "fr" ? "années de feu" : "fire years"} ${rep.test_fire_years.join(", ")}</span></div><div class="card-body">${tableFor("TA", "out_of_window")}</div></div>
@@ -89,14 +105,14 @@ export async function render(main, { space }) {
             <div class="kpi"><div class="label">${esc(t("method.weekly"))}</div><div class="value">×${fmt(pair.weekly_ratio_V_over_A, 2)}</div>
             <div class="note">${l === "fr" ? "inclut l'échantillonnage (fauchée, revisite)" : "includes sampling (swath, revisit)"}</div></div></div></div>
         <div class="card card-pad"><h3 style="font-size:15px;margin-bottom:8px">${esc(t("method.viirs_t"))}</h3>
-          <div class="kpis"><div class="kpi"><div class="label">${esc(t("method.nmae"))}</div><div class="value">${fmt(vc.metrics?.zone_week?.nmae_pct, 0)} %</div>
-            <div class="note">${l === "fr" ? "brut" : "raw"} NOAA-20 : ${fmt(vc.naive_metrics?.zone_week?.nmae_pct, 0)} %</div></div>
-            <div class="kpi"><div class="label">${esc(t("method.bias"))}</div><div class="value">${fmtSigned(vc.metrics?.region_year?.bias_pct, 1, " %")}</div>
+          <div class="kpis"><div class="kpi"><div class="label">${esc(t("method.nmae"))}</div><div class="value">${fmt(vc.metrics?.zone_week?.nmae_pct, 0)}${PCT()}</div>
+            <div class="note">${l === "fr" ? "brut" : "raw"} NOAA-20 : ${fmt(vc.naive_metrics?.zone_week?.nmae_pct, 0)}${PCT()}</div></div>
+            <div class="kpi"><div class="label">${esc(t("method.bias"))}</div><div class="value">${fmtSigned(vc.metrics?.region_year?.bias_pct, 1, PCT())}</div>
             <div class="note">S-NPP / NOAA-20 ×${fmt(vc.global_ratio, 3)}</div></div></div>
           ${vc21.metrics ? `<h3 style="font-size:15px;margin:14px 0 8px">NOAA-21 → S-NPP <span class="muted small">(${esc(vc21.period?.join("–") || "")})</span></h3>
-          <div class="kpis"><div class="kpi"><div class="label">${esc(t("method.nmae"))}</div><div class="value">${fmt(vc21.metrics.zone_week?.nmae_pct, 0)} %</div>
-            <div class="note">${l === "fr" ? "brut" : "raw"} NOAA-21 : ${fmt(vc21.naive_metrics?.zone_week?.nmae_pct, 0)} %</div></div>
-            <div class="kpi"><div class="label">${esc(t("method.bias"))}</div><div class="value">${fmtSigned(vc21.metrics.region_year?.bias_pct, 1, " %")}</div>
+          <div class="kpis"><div class="kpi"><div class="label">${esc(t("method.nmae"))}</div><div class="value">${fmt(vc21.metrics.zone_week?.nmae_pct, 0)}${PCT()}</div>
+            <div class="note">${l === "fr" ? "brut" : "raw"} NOAA-21 : ${fmt(vc21.naive_metrics?.zone_week?.nmae_pct, 0)}${PCT()}</div></div>
+            <div class="kpi"><div class="label">${esc(t("method.bias"))}</div><div class="value">${fmtSigned(vc21.metrics.region_year?.bias_pct, 1, PCT())}</div>
             <div class="note">S-NPP / NOAA-21 ×${fmt(vc21.global_ratio, 3)}</div></div></div>` : ""}</div>
       </div>
     </div>

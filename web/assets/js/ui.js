@@ -44,6 +44,10 @@ export async function confirmBox(text) {
   });
 }
 
+// "12 %" / "12%", "Label : x" / "Label: x" (French typography uses a non-breaking space)
+export const PCT = () => (getLang() === "fr" ? " %" : "%");
+export const COLON = () => (getLang() === "fr" ? " :" : ":");
+
 const nf = () => new Intl.NumberFormat(getLang() === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 0 });
 export function fmt(v, d = 0) {
   if (v == null || Number.isNaN(v)) return "–";
@@ -149,6 +153,11 @@ export const icons = {
   sms: I('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8 11h8M8 14h5"/>'),
   copy: I('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>'),
   plus: I('<path d="M12 5v14M5 12h14"/>'),
+  bulb: I('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>'),
+  arrow: I('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  calendar: I('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  gauge: I('<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/>'),
+  question: I('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.1-2.4 3.8M12 17h.01"/>'),
   logout: I('<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5M5 12h11"/>'),
 };
 

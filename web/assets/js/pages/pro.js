@@ -1,9 +1,10 @@
 import { api } from "../api.js";
 import { t, getLang } from "../i18n.js";
-import { $, $$, esc, icons, toast, modal, confirmBox, fmt, fmtInt, fmtSigned, fmtDate, statusChip, loadingBlock, errorBlock, emptyBlock, riskChip, copyText, initials } from "../ui.js";
+import { $, $$, esc, icons, toast, modal, confirmBox, fmt, fmtInt, fmtSigned, fmtDate, statusChip, loadingBlock, errorBlock, emptyBlock, riskChip, copyText, initials, PCT, COLON } from "../ui.js";
 import { sparkline } from "../charts.js";
 import { renderZone, sensorsChart } from "./zoneview.js";
 import { FS } from "../main.js";
+import { zoneCardLine } from "../explain.js";
 
 const CATS = ["departement", "foret_classee", "parcours", "aire_protegee", "autre"];
 
@@ -41,6 +42,7 @@ async function dashboard(main) {
         <div class="row" style="justify-content:space-between"><h3>${esc(r.zone.name)}</h3>
           ${r.alert ? `<span class="chip crit">${icons.bell}${esc(t("pro.alert"))}</span>` : `<span class="chip">${esc(t("pro.cat." + (r.zone.category || "autre")))}</span>`}</div>
         <div class="meta">${statusChip(last.status)}<span class="small muted">${esc(t("ex.last_week"))} ${esc(L[last.fweek] || "–")}</span></div>
+        ${r.cumulative != null ? `<p class="plain-line" style="margin:0">${zoneCardLine(r.cumulative, r.cumulative_status, last.status)}</p>` : ""}
         <div class="row" style="justify-content:space-between;align-items:flex-end">
           <div><div class="small muted">${esc(t("ex.cum"))} ${esc(t("pro.since"))}</div><div class="strong" style="font-size:20px">${fmtInt(r.cumulative)}</div>
             <div class="small ink2">${esc(t("ex.pct"))} ${fmt(r.cumulative_pct, 0)} · ${statusChip(r.cumulative_status)}</div></div>
@@ -51,7 +53,7 @@ async function dashboard(main) {
           <button class="btn sm ghost" data-copy="${r.zone.id}" style="margin-top:6px">${icons.copy}${esc(t("fc.copy"))}</button></div>` : ""}
         <div class="row small ink2" style="gap:14px"><span>${esc(t("ex.onset"))} <b>${esc(L[r.summary.onset] || "–")}</b></span>
           <span>${esc(t("ex.peak"))} <b>${esc(L[r.summary.peak] || "–")}</b></span>
-          <span>${esc(t("pro.trend"))} <b>${fmtSigned(r.trend, 0, " %")}</b></span></div>
+          <span>${esc(t("pro.trend"))} <b>${fmtSigned(r.trend, 0, PCT())}</b></span></div>
         <div class="row"><a class="btn sm" href="#/pro/analysis/${r.zone.id}">${icons.chart}${esc(t("pro.analyse"))}</a></div>
       </div>`;
     }).join("")}</div>`;
@@ -172,7 +174,7 @@ async function account(main) {
     <div class="card card-pad"><div class="row"><span class="avatar" style="width:52px;height:52px;font-size:18px">${esc(initials(u))}</span>
       <div><h3 style="font-size:17px">${esc(u.name || u.email)}</h3><div class="small ink2">${esc(u.email)} · ${esc(u.org || "")}</div>
       <div style="margin-top:6px"><span class="chip brand">${esc(t("common." + u.role))}</span></div></div></div>
-      <hr class="divider"><div class="small ink2">${esc(t("common.last_login"))} : ${esc(fmtDate(u.last_login))}</div></div>
+      <hr class="divider"><div class="small ink2">${esc(t("common.last_login"))}${COLON()} ${esc(fmtDate(u.last_login))}</div></div>
     <form class="card card-pad" id="pw"><h3 style="font-size:16px;margin-bottom:12px">${esc(t("pro.pw_t"))}</h3>
       <div class="field"><label for="p1">${esc(t("pro.pw_cur"))}</label><input class="input" id="p1" type="password" required autocomplete="current-password"></div>
       <div class="field"><label for="p2">${esc(t("pro.pw_new"))}</label><input class="input" id="p2" type="password" minlength="8" required autocomplete="new-password"></div>
