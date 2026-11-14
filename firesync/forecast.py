@@ -26,12 +26,11 @@ from datetime import date, timedelta
 
 import numpy as np
 import polars as pl
-from scipy.stats import norm
-
 from . import config
 from .config import GRID, WEEKS_PER_YEAR as W
 from .grid import cell_center, geometry_to_cells, parents
 from .harmonize import uncertainty as unc
+from .stats import norm_cdf
 from .ingest import boundaries, landcover
 
 log = logging.getLogger(__name__)
@@ -381,7 +380,7 @@ def prob_above(mu, var, thr) -> np.ndarray:
     v = np.maximum(np.asarray(var, float), mu)
     s2 = np.log1p(v / (mu + 1) ** 2)
     m = np.log(mu + 1) - s2 / 2
-    return 1 - norm.cdf((np.log(np.asarray(thr, float) + 1) - m) / np.sqrt(np.maximum(s2, 1e-9)))
+    return 1 - norm_cdf((np.log(np.asarray(thr, float) + 1) - m) / np.sqrt(np.maximum(s2, 1e-9)))
 
 
 def reliability(p, ev, bins=5) -> list[dict]:

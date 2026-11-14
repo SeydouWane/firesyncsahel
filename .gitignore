@@ -14,7 +14,7 @@ data/processed/*
 !data/processed/availability_week.parquet
 !data/processed/model_week.parquet
 !data/processed/fine_week.parquet
-!data/processed/detections.parquet
+!data/processed/det_serving.parquet
 !data/processed/admin_1.geojson
 !data/processed/admin_2.geojson
 !data/processed/landcover_meta.json

@@ -201,6 +201,16 @@ def _validation_headline() -> dict | None:
     return out
 
 
+def _attachment(filename: str) -> str:
+    """Content-Disposition for any zone name (accents, quotes, spaces): an ASCII
+    fallback plus the exact UTF-8 name (RFC 6266 / 5987). Header stays pure ASCII."""
+    import unicodedata
+    from urllib.parse import quote
+    clean = "".join(ch for ch in filename if ch.isalnum() or ch in "-_. ").strip().replace(" ", "_") or "FireSync"
+    ascii_name = unicodedata.normalize("NFKD", clean).encode("ascii", "ignore").decode() or "FireSync"
+    return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(clean)}"
+
+
 _cov_cache: dict = {}
 
 
@@ -208,8 +218,7 @@ def _coverage(st: Store) -> list:
     key = st.meta.get("data_version") or st.meta.get("generated")
     if key not in _cov_cache:
         _cov_cache.clear()
-        _cov_cache[key] = st.query("SELECT sensor, min(date)::VARCHAR, max(date)::VARCHAR, count(*) FROM det "
-                                   "GROUP BY sensor ORDER BY sensor")
+        _cov_cache[key] = st.coverage()
     return _cov_cache[key]
 
 
@@ -291,9 +300,8 @@ def zone_bulletin(qz: ZoneQuery, request: Request):
     except HTTPException:
         pass
     pdf = bulletin.build(qz.name, res["calendar"], qz.lang, vtxt, _store().last_date, fcz, _partners())
-    fname = "".join(ch for ch in qz.name if ch.isalnum() or ch in "-_ ").strip().replace(" ", "_") or "zone"
     return Response(pdf, media_type="application/pdf",
-                    headers={"Content-Disposition": f'attachment; filename="FireSync_{fname}_{qz.lang}.pdf"'})
+                    headers={"Content-Disposition": _attachment(f"FireSync_{qz.name}_{qz.lang}.pdf")})
 
 
 _agg_cache: dict = {}
@@ -422,11 +430,11 @@ def map_points(fyear: int, fweek_from: int = 0, fweek_to: int = 51, limit: int =
         pairs.append((y, w))
     if not pairs:
         return {"n": 0, "lon": [], "lat": [], "s": [], "frp": []}
-    cond = " OR ".join(f"(year={y} AND week={w})" for y, w in pairs)
-    rows = st.query(f"SELECT lon, lat, sensor, frp FROM det WHERE {cond} LIMIT {int(min(limit, 250000))}")
+    pts = st.points(pairs, int(min(max(limit, 0), 250000)))
     code = {"MODIS_T": 0, "MODIS_A": 1, "VIIRS_SNPP": 2, "VIIRS_N20": 3, "VIIRS_N21": 4}
-    return {"n": len(rows), "lon": [round(r[0], 4) for r in rows], "lat": [round(r[1], 4) for r in rows],
-            "s": [code.get(r[2], 9) for r in rows], "frp": [round(r[3] or 0, 1) for r in rows]}
+    return {"n": pts.height, "lon": pts["lon"].round(4).to_list(), "lat": pts["lat"].round(4).to_list(),
+            "s": [code.get(s, 9) for s in pts["sensor"].to_list()],
+            "frp": pts["frp"].fill_null(0).round(1).to_list()}
 
 
 @app.get("/api/validation")
@@ -579,7 +587,7 @@ def pro_export_csv(qz: ZoneQuery, u=Depends(auth.require_pro)):
     csv = weekly_csv(res["zd"], res["calendar"]["start_week"])
     db.audit(u["id"], "export.csv", qz.name)
     return Response(csv, media_type="text/csv",
-                    headers={"Content-Disposition": f'attachment; filename="FireSync_{qz.name}_weekly.csv"'})
+                    headers={"Content-Disposition": _attachment(f"FireSync_{qz.name}_weekly.csv")})
 
 
 @app.post("/api/pro/export/geojson")
@@ -592,7 +600,7 @@ def pro_export_geojson(qz: ZoneQuery, u=Depends(auth.require_pro)):
                            "annual": [{k: y[k] for k in ("label", "total", "total_lo", "total_hi", "onset",
                                                          "peak", "end", "duration", "main_source")}
                                       for y in cal["years"]]}}
-    return JSONResponse(feat, headers={"Content-Disposition": f'attachment; filename="FireSync_{qz.name}.geojson"'})
+    return JSONResponse(feat, headers={"Content-Disposition": _attachment(f"FireSync_{qz.name}.geojson")})
 
 
 # ---------------------------------------------------------------- admin
@@ -600,7 +608,7 @@ def pro_export_geojson(qz: ZoneQuery, u=Depends(auth.require_pro)):
 def admin_overview(u=Depends(auth.require_admin)):
     st = _store()
     cov = _coverage(st)
-    per_year = st.query("SELECT year, sensor, count(*) FROM det GROUP BY year, sensor ORDER BY year, sensor")
+    per_year = st.per_year()
     files = sorted((config.RAW / "firms").rglob("*.csv"))
     return {
         "counts": {"users": db.q1("SELECT count(*) n FROM users")["n"],

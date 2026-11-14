@@ -97,10 +97,10 @@ def values() -> dict:
 
 
 def main():
-    import pyarrow.parquet as pq
+    import polars as pl
     v = values()
-    det = HERE.parent / "data" / "processed" / "detections.parquet"
-    n_rows = pq.ParquetFile(det).metadata.num_rows
+    det = HERE.parent / "data" / "processed" / "det_serving.parquet"
+    n_rows = pl.scan_parquet(det).select(pl.len()).collect().item()
     v["n_det"] = n(n_rows / 1e6, 1) + NB + "M"
     html = (HERE / "slides_template.html").read_text(encoding="utf-8")
     html = html.replace("{{flame}}", flame())

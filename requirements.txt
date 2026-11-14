@@ -1,13 +1,11 @@
-# Web platform (API + front-end). This is what Vercel installs.
+# Web platform (API + front-end). This is what Vercel installs — kept lean
+# (serverless bundle limit 500 MB): no scipy / duckdb / pyarrow / scikit-learn.
 # The data pipeline (downloads, harmonisation model, AI training, tests) needs
 # the extra packages of requirements-pipeline.txt.
 numpy==2.4.6
 polars==2.1.0
-pyarrow==26.0.1
-duckdb==2.0.0
 h3==4.5.0
 shapely==2.2.0
-scipy==1.17.1
 fastapi==0.162.5
 uvicorn==0.54.0
 matplotlib==3.11.2

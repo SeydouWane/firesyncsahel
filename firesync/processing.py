@@ -21,6 +21,8 @@ from .grid import latlng_to_cells, parents
 log = logging.getLogger(__name__)
 
 DET_PATH = config.PROCESSED / "detections.parquet"
+# slim copy read by the web platform (map points, sensor coverage): 7 of the 18 columns
+DET_SERVING_PATH = config.PROCESSED / "det_serving.parquet"
 FINE_PATH = config.PROCESSED / "fine_week.parquet"
 MODEL_PATH = config.PROCESSED / "model_week.parquet"
 
@@ -162,9 +164,21 @@ def build_model_table(det: pl.DataFrame) -> pl.DataFrame:
     return full.sort(["h3_5", "year", "week"])
 
 
+def write_det_serving(det: pl.DataFrame | None = None) -> Path:
+    """Slim, sorted copy of the detections for the web platform (keeps its bundle small)."""
+    if det is None:
+        det = pl.read_parquet(DET_PATH, columns=["sensor", "lon", "lat", "frp", "date", "year", "week"])
+    (det.select(pl.col("sensor").cast(pl.Categorical), pl.col("lon").cast(pl.Float32),
+                pl.col("lat").cast(pl.Float32), pl.col("frp").cast(pl.Float32), "date", "year", "week")
+        .sort(["year", "week"])
+        .write_parquet(DET_SERVING_PATH, compression="zstd", compression_level=19, row_group_size=100_000))
+    return DET_SERVING_PATH
+
+
 def run(raw_dir: Path | None = None) -> dict:
     det = clean(load_raw(raw_dir))
     det.write_parquet(DET_PATH)
+    write_det_serving(det)
     build_fine(det).write_parquet(FINE_PATH)
     mt = build_model_table(det)
     mt.write_parquet(MODEL_PATH)

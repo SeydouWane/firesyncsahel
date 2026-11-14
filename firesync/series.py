@@ -21,7 +21,6 @@ import threading
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-import duckdb
 import numpy as np
 import polars as pl
 
@@ -66,9 +65,12 @@ class Store:
         self.model_week = pl.read_parquet(
             P / "model_week.parquet",
             columns=["h3_5", "year", "week", "n_MODIS_T", "n_MODIS_A", "n_VIIRS_N20", "n_VIIRS_N21"])
-        self.con = duckdb.connect()
-        self.con.execute(f"CREATE VIEW fine AS SELECT * FROM read_parquet('{(P / 'fine_week.parquet').as_posix()}')")
-        self.con.execute(f"CREATE VIEW det AS SELECT * FROM read_parquet('{(P / 'detections.parquet').as_posix()}')")
+        # weekly counts per H3 res-7 cell, in memory (zone queries filter it on every request)
+        self.fine = pl.read_parquet(P / "fine_week.parquet", columns=["h3_7", "year", "week", "sensor", "n"])
+        # individual detections, scanned lazily (map points, sensor coverage)
+        dp = P / "det_serving.parquet"
+        self.det = pl.scan_parquet(dp if dp.exists() else P / "detections.parquet").select(
+            "sensor", "lon", "lat", "frp", "date", "year", "week")
         self.hex_year = pl.read_parquet(M / "hex_year.parquet")
         wa = self.week_av
         src = (pl.when(pl.col("f_VIIRS_SNPP") >= MIN_FRAC).then(pl.lit("VIIRS_SNPP"))
@@ -82,16 +84,28 @@ class Store:
                       .drop_nulls("source").sort(["year", "week"]))
         self.last_date = self._last_date()
 
-    def query(self, sql: str, params=None) -> list:
-        """Run a read query on a private cursor (thread-safe, fully fetched)."""
-        cur = self.con.cursor()
-        try:
-            return cur.execute(sql, params or []).fetchall()
-        finally:
-            cur.close()
-
     def _last_date(self) -> str:
-        return str(self.query("SELECT max(date)::VARCHAR FROM det")[0][0])
+        return str(self.det.select(pl.col("date").max()).collect().item())
+
+    def coverage(self) -> list[tuple]:
+        """(sensor, first date, last date, n detections) per sensor."""
+        d = (self.det.group_by("sensor")
+             .agg(pl.col("date").min().cast(pl.Utf8), pl.col("date").max().cast(pl.Utf8).alias("last"), pl.len())
+             .with_columns(pl.col("sensor").cast(pl.Utf8)).sort("sensor").collect())
+        return [tuple(r) for r in d.iter_rows()]
+
+    def per_year(self) -> list[tuple]:
+        d = (self.det.group_by(["year", "sensor"]).agg(pl.len())
+             .with_columns(pl.col("sensor").cast(pl.Utf8)).sort(["year", "sensor"]).collect())
+        return [tuple(r) for r in d.iter_rows()]
+
+    def points(self, pairs: list[tuple[int, int]], limit: int) -> pl.DataFrame:
+        """Detections of the given (calendar year, week) pairs."""
+        sel = pl.DataFrame({"year": [p[0] for p in pairs], "week": [p[1] for p in pairs]},
+                           schema={"year": pl.Int16, "week": pl.Int8})
+        return (self.det.join(sel.lazy(), on=["year", "week"], how="semi")
+                .select(pl.col("lon"), pl.col("lat"), pl.col("sensor").cast(pl.Utf8), pl.col("frp"))
+                .head(limit).collect())
 
 
 @dataclass
@@ -104,13 +118,7 @@ class ZoneData:
 
 
 def _fine_counts(st: Store, cells7: np.ndarray) -> pl.DataFrame:
-    cur = st.con.cursor()
-    try:
-        cur.register("zone_cells", pl.DataFrame({"h3_7": cells7}).to_arrow())
-        return cur.sql("SELECT f.h3_7, f.year, f.week, f.sensor, f.n FROM fine f "
-                       "JOIN zone_cells z USING (h3_7)").pl()
-    finally:
-        cur.close()
+    return st.fine.filter(pl.col("h3_7").is_in(pl.Series(np.asarray(cells7, dtype=np.int64))))
 
 
 def zone_data(geom, mode: str = "harmonized") -> ZoneData:

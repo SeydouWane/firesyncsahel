@@ -2,8 +2,8 @@
 # AI forecast training, validation) + tests.
 #   pip install -r requirements-pipeline.txt
 -r requirements.txt
+scipy==1.17.1
 scikit-learn==1.9.1
-pandas==3.1.1
 rasterio==1.4.4
 pystac-client==0.9.1
 pyhdf==0.11.7

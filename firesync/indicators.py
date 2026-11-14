@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
-from scipy.stats import kendalltau, theilslopes
+from .stats import kendalltau, theilslopes  # numpy versions of scipy.stats (lean web bundle)
 
 from .config import SEASON
 

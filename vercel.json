@@ -5,7 +5,7 @@
   "functions": {
     "app.py": {
       "maxDuration": 120,
-      "excludeFiles": "{tests/**,presentation/**,data/raw/**,data/validation/*.parquet,**/__pycache__/**,.venv/**,requirements-pipeline.txt}"
+      "excludeFiles": "{tests/**,presentation/**,data/raw/**,data/validation/*.parquet,data/processed/detections.parquet,**/__pycache__/**,.venv/**,requirements-pipeline.txt}"
     }
   }
 }

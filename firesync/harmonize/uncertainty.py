@@ -19,7 +19,8 @@ outwards to integers.
 from __future__ import annotations
 
 import numpy as np
-from scipy.stats import gamma
+
+from ..stats import norm_ppf
 
 
 def nb_theta(y: np.ndarray, mu: np.ndarray) -> float:
@@ -57,12 +58,11 @@ def interval(mean: np.ndarray, var: np.ndarray, kappa: float = 1.0, level: float
     the width grows monotonically with kappa, so the calibration is well posed.
     Bounds are rounded outwards to integers and never negative.
     """
-    from scipy.stats import norm
     m = np.maximum(np.asarray(mean, dtype=float), 0.0)
     v = np.maximum(np.asarray(var, dtype=float), m)  # at least Poisson
     s2 = np.log1p(v / (m + 1.0) ** 2)
     mu = np.log(m + 1.0) - s2 / 2
-    z = norm.ppf(0.5 + level / 2) * kappa
+    z = norm_ppf(0.5 + level / 2) * kappa
     s = np.sqrt(s2)
     lo = np.floor(np.maximum(np.exp(mu - z * s) - 1.0, 0.0))
     hi = np.ceil(np.exp(mu + z * s) - 1.0)
