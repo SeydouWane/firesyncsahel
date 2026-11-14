@@ -1,7 +1,7 @@
 // Boot, router and shell (top bar + per-space sidebar).
 import { api } from "./api.js";
 import { t, getLang, setLang } from "./i18n.js";
-import { $, $$, esc, icons, toast, fmtDay } from "./ui.js";
+import { $, $$, esc, icons, toast, fmtDay, initials } from "./ui.js";
 import { logoSVG } from "./logo.js";
 
 export const FS = { meta: null, user: null, metaError: null };
@@ -103,7 +103,7 @@ function renderTop(space, page) {
   $("#theme-btn").innerHTML = dark ? icons.sun : icons.moon;
   $("#theme-btn").setAttribute("aria-label", dark ? "Light theme" : "Dark theme");
   $("#user-slot").innerHTML = u
-    ? `<button class="user-chip" id="user-btn" title="${esc(u.email)}"><span class="avatar">${esc((u.name || u.email).slice(0, 2).toUpperCase())}</span>
+    ? `<button class="user-chip" id="user-btn" title="${esc(u.email)}"><span class="avatar">${esc(initials(u))}</span>
          <span class="name small strong">${esc(u.name || u.email)}</span></button>`
     : `<a class="btn sm primary" href="#/login">${esc(t("nav.login"))}</a>`;
   $("#user-btn")?.addEventListener("click", () => { location.hash = u.role === "admin" && space !== "pro" ? "#/admin" : "#/pro/account"; });

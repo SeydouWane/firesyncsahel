@@ -5,6 +5,12 @@ export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 export function h(html) { const d = document.createElement("template"); d.innerHTML = html.trim(); return d.content.firstElementChild; }
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// "Papa Seydou WANE" -> "PW" (first + last word); a single word or an e-mail -> its first 2 letters
+export function initials(u) {
+  const w = String(u?.name || "").trim().split(/\s+/).filter(Boolean);
+  if (w.length >= 2) return (w[0][0] + w[w.length - 1][0]).toUpperCase();
+  return String(u?.name || u?.email || "?").slice(0, 2).toUpperCase();
+}
 
 export function toast(msg, err = false) {
   const el = h(`<div class="toast${err ? " err" : ""}" role="status">${esc(msg)}</div>`);

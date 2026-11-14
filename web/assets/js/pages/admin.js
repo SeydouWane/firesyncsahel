@@ -88,7 +88,8 @@ async function pipeline(main) {
       const pre = $("#log", body); const atEnd = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 20;
       pre.textContent = j.log || "…"; if (atEnd) pre.scrollTop = pre.scrollHeight;
     }
-    $$("[data-run]", body).forEach((b) => (b.disabled = jobs.some((x) => x.status === "running")));
+    const busy = jobs.some((x) => x.status === "running");
+    $$("[data-run]", body).forEach((b) => (b.disabled = busy || (sl && b.dataset.run !== "reload")));
     clearTimeout(timer);
     if (jobs.some((x) => x.status === "running")) timer = setTimeout(refresh, 2500);
   };

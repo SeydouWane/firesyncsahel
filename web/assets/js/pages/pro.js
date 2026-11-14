@@ -1,6 +1,6 @@
 import { api } from "../api.js";
 import { t, getLang } from "../i18n.js";
-import { $, $$, esc, icons, toast, modal, confirmBox, fmt, fmtInt, fmtSigned, fmtDate, statusChip, loadingBlock, errorBlock, emptyBlock, riskChip, copyText } from "../ui.js";
+import { $, $$, esc, icons, toast, modal, confirmBox, fmt, fmtInt, fmtSigned, fmtDate, statusChip, loadingBlock, errorBlock, emptyBlock, riskChip, copyText, initials } from "../ui.js";
 import { sparkline } from "../charts.js";
 import { renderZone, sensorsChart } from "./zoneview.js";
 import { FS } from "../main.js";
@@ -169,7 +169,7 @@ async function account(main) {
   const u = FS.user;
   const body = head(main, t("pro.account_t"), u.email);
   body.innerHTML = `<div class="grid g2">
-    <div class="card card-pad"><div class="row"><span class="avatar" style="width:52px;height:52px;font-size:18px">${esc((u.name || u.email).slice(0, 2).toUpperCase())}</span>
+    <div class="card card-pad"><div class="row"><span class="avatar" style="width:52px;height:52px;font-size:18px">${esc(initials(u))}</span>
       <div><h3 style="font-size:17px">${esc(u.name || u.email)}</h3><div class="small ink2">${esc(u.email)} · ${esc(u.org || "")}</div>
       <div style="margin-top:6px"><span class="chip brand">${esc(t("common." + u.role))}</span></div></div></div>
       <hr class="divider"><div class="small ink2">${esc(t("common.last_login"))} : ${esc(fmtDate(u.last_login))}</div></div>
